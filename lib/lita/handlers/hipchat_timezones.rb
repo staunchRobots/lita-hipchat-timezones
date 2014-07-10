@@ -2,30 +2,56 @@ module Lita
   module Handlers
     class HipchatTimezones < Handler
 
+      CACHE_KEY = "timezone"
+
       # Default Configuration
       def self.default_config(config)
         config.enabled  = true
+        config.token    = ""
       end
 
       # Routes
-      route /^(timezone|tz)\s(@\w+)$/, command: true, :fetch_user_timezone
-      route /^(timezone|tz)\s+(.+)/,   command: true, :timezone_cli
+      route /^(timezone|tz)\s+(.+)/, :timezone_cli, command: true
 
       # Commands
       def timezone_cli(response)
-        command = args.shift
-        send(command, reponse, *args) if respond_to?(command)
+        command = response.args.shift
+        case command
+          when /@(\w+)/
+            fetch_user_timezone(command, response)
+          else
+            send(command, reponse, *args) if respond_to?(command)
+        end
       end
 
-      def fetch_user_timezone(response)
-        user = args.shift
-        response.reply fetch_timezone(user)
+      def fetch_user_timezone(user, response)
+        response.reply "#{user}'s timezone is #{fetch_timezone(user)}" 
       end
 
       private
 
-      def fetch_timezone(user)
+      def cache_key(user)
+        "#{user}_#{CACHE_KEY}"
+      end
 
+      def fetch_timezone(user)
+        fetch_timezone_from_cache(user) || fetch_timezone_from_hipchat(user)
+      end
+
+      def fetch_timezone_from_cache(user)
+        redis.get(cache_key(user))
+      end
+
+      def fetch_timezone_from_hipchat(user)
+        response = HTTParty.get("https://api.hipchat.com/v2/user/#{user}?auth_token=#{config.token}")
+        if response.parsed_response.has_key? "error"
+          "unknown :("
+        else
+          tz = response.parsed_response['timezone']
+          redis.set(cache_key(user), tz)
+          redis.expire(cache_key(user), 1.month.seconds)
+          tz
+        end
       end
 
     end
