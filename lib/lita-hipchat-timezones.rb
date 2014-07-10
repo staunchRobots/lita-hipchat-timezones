@@ -1,7 +1,7 @@
 require "lita"
 require "active_support"
 require 'active_support/all'
-require "hipchat"
+require "httparty"
 
 Lita.load_locales Dir[File.expand_path(
   File.join("..", "..", "locales", "*.yml"), __FILE__
