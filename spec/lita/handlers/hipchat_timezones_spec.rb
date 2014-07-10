@@ -18,7 +18,7 @@ describe Lita::Handlers::HipchatTimezones, lita_handler: true do
 
       it "replies with the user' timezone" do
         send_command("timezone #{name}")
-        expect(replies.last).to include "America/Sao_Paulo"
+        expect(replies.last).to include "GMT-3"
       end
     end
   end

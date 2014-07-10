@@ -7,7 +7,6 @@ module Lita
       # Default Configuration
       def self.default_config(config)
         config.enabled  = true
-        config.token    = ""
       end
 
       # Routes
@@ -43,11 +42,13 @@ module Lita
       end
 
       def fetch_timezone_from_hipchat(user)
+        binding.pry
         response = HTTParty.get("https://api.hipchat.com/v2/user/#{user}?auth_token=#{config.token}")
         if response.parsed_response.has_key? "error"
           "unknown :("
         else
-          tz = response.parsed_response['timezone']
+          tz = ActiveSupport::TimeZone[ response.parsed_response['timezone'] ]
+          tz = "GMT#{tz.formatted_offset[0..2].to_i}"
           redis.set(cache_key(user), tz)
           redis.expire(cache_key(user), 1.month.seconds)
           tz
