@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Lita::Handlers::HipchatTimezones, lita_handler: true do
 
-  describe "#timezone" do
+  describe "#tz" do
     
     context "with @mention_name" do
       let(:name) { "@LeonardoBighetti" }
@@ -17,7 +17,7 @@ describe Lita::Handlers::HipchatTimezones, lita_handler: true do
       end
 
       it "replies with the user' timezone" do
-        send_command("timezone #{name}")
+        send_command("tz #{name}")
         expect(replies.last).to include "GMT-3"
       end
     end
