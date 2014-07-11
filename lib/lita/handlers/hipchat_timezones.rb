@@ -10,8 +10,10 @@ module Lita
       end
 
       # Routes
-      route /^tz\s+(.+)/, :fetch_user_timezone, command: true
+      route /^tz\s+(@\w)/, :fetch_user_timezone, command: true
       route /^whenis\s+(.+)/, :fetch_user_time, command: true
+      route /^tz\s+(list)/,   :list_users_time, command: true
+
 
       def fetch_user_time(response)
         return unless config.enabled
@@ -26,6 +28,16 @@ module Lita
         rescue StandardError => e
           # Excuse
           response.reply "Sorry, I failed :("
+        end
+      end
+
+      def list_users_time(response)
+        return unless config.enabled
+        begin
+          actual_room = response.message.source.room
+          response.reply actual_room
+        rescue StandardError => e
+          response.reply "Sorry, having problems :("
         end
       end
 
